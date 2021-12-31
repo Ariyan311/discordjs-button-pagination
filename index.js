@@ -16,11 +16,11 @@ const {
 const paginationEmbed = async (interaction, pages, buttonList, timeout = 120000) => {
   if (!pages) throw new Error("Pages are not given.");
   if (!buttonList) throw new Error("Buttons are not given.");
-  if (buttonList[0].style === "LINK" || buttonList[1].style === "LINK")
+  if (buttonList[0].style === "LINK" || buttonList[1].style === "LINK" || buttonList[2].style === "LINK" || buttonList[3].style === "LINK")
     throw new Error(
       "Link buttons are not supported with discordjs-button-pagination"
     );
-  if (buttonList.length !== 2) throw new Error("Need two buttons.");
+  
   
   let page = 0;
 
@@ -38,7 +38,9 @@ const paginationEmbed = async (interaction, pages, buttonList, timeout = 120000)
 
   const filter = (i) =>
     i.customId === buttonList[0].customId ||
-    i.customId === buttonList[1].customId;
+    i.customId === buttonList[1].customId ||
+    i.customId === buttonList[2].customId ||
+    i.customId === buttonList[3].customId;
 
   const collector = await curPage.createMessageComponentCollector({
     filter,
@@ -48,16 +50,22 @@ const paginationEmbed = async (interaction, pages, buttonList, timeout = 120000)
   collector.on("collect", async (i) => {
     switch (i.customId) {
       case buttonList[0].customId:
-        page = page > 0 ? --page : pages.length - 1;
+        page = 0;
         break;
       case buttonList[1].customId:
+        page = page > 0 ? --page : pages.length - 1;
+        break;
+      case buttonList[2].customId:
         page = page + 1 < pages.length ? ++page : 0;
+        break;
+      case buttonList[3].customId:
+        page = pages.length - 1;
         break;
       default:
         break;
     }
     await i.deferUpdate();
-    await i.editReply({
+    await i.edit({
       embeds: [pages[page].setFooter(`Page ${page + 1} / ${pages.length}`)],
       components: [row],
     });
@@ -68,7 +76,9 @@ const paginationEmbed = async (interaction, pages, buttonList, timeout = 120000)
     if (!curPage.deleted) {
       const disabledRow = new MessageActionRow().addComponents(
         buttonList[0].setDisabled(true),
-        buttonList[1].setDisabled(true)
+        buttonList[1].setDisabled(true),
+        buttonList[2].setDisabled(true),
+        buttonList[3].setDisabled(true),
       );
       curPage.edit({
         embeds: [pages[page].setFooter(`Page ${page + 1} / ${pages.length}`)],
@@ -80,4 +90,3 @@ const paginationEmbed = async (interaction, pages, buttonList, timeout = 120000)
   return curPage;
 };
 module.exports = paginationEmbed;
- 
